@@ -12,7 +12,9 @@ class AdjustScreen extends StatefulWidget {
 
 class _AdjustScreenState extends State<AdjustScreen> {
   final _formKey = GlobalKey<FormState>();
+  TextEditingController _textFieldController = TextEditingController();
   InsulinCalculator _calculator;
+
   double _currentMmol;
   double _desiredMmol;
   double _recommendedCarbs;
@@ -23,6 +25,11 @@ class _AdjustScreenState extends State<AdjustScreen> {
     _hasCalculated = false;
     SettingsService.getDailyDose().then((val) => setState(() {
           _calculator = InsulinCalculator(val);
+        }));
+
+    SettingsService.getTargetBloodSugar().then((val) => setState(() {
+          _desiredMmol = val;
+          _textFieldController.text = _desiredMmol.toString();
         }));
   }
 
@@ -51,8 +58,7 @@ class _AdjustScreenState extends State<AdjustScreen> {
       setState(() {
         if (delta == 0) {
           // TODO: Congratulate the user. Well done. Good diabetesing.
-        }
-        else if (delta > 0) {
+        } else if (delta > 0) {
           _recommendedCarbs = _calculator.carbsForIncrease(delta);
         } else {
           _recommendedDose = _calculator.doseForDecrease(-delta);
@@ -69,59 +75,69 @@ class _AdjustScreenState extends State<AdjustScreen> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: <Widget>[
-              Wrap(
-                runSpacing: 40,
-                children: <Widget>[
-                  TextFormField(
-                    decoration: InputDecoration(
-                        suffix: Text('mmol/l'),
-                        labelText: 'Current blood sugar'),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return "Enter your current blood sugar level";
-                      }
-                      return null;
-                    },
-                    onSaved: (val) => _currentMmol = double.parse(val),
+      padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          children: <Widget>[
+            Wrap(
+              runSpacing: 40,
+              children: <Widget>[
+                TextFormField(
+                  decoration: InputDecoration(
+                      suffix: Text('mmol/l'),
+                      labelText: 'Current blood sugar'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return "Enter your current blood sugar level";
+                    }
+                    return null;
+                  },
+                  onSaved: (val) => _currentMmol = double.parse(val),
+                ),
+                TextFormField(
+                  decoration: InputDecoration(
+                      suffix: Text('mmol/l'),
+                      labelText: 'Desired blood sugar'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return "Enter your desired blood sugar level";
+                    }
+                    return null;
+                  },
+                  onSaved: (val) => _desiredMmol = double.parse(val),
+                  controller: _textFieldController,
+                ),
+                Align(
+                  alignment: Alignment.center,
+                  heightFactor: 1.5,
+                  child: RaisedButton(
+                    child: Text('Calculate'),
+                    onPressed: _calculate,
                   ),
-                  TextFormField(
-                    decoration: InputDecoration(
-                        suffix: Text('mmol/l'),
-                        labelText: 'Desired blood sugar'),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return "Enter your desired blood sugar level";
-                      }
-                      return null;
-                    },
-                    onSaved: (val) => _desiredMmol = double.parse(val),
+                ),
+                Visibility(
+                  visible: _hasCalculated,
+                  child: AdjustmentRecommendation(
+                    dose: _recommendedDose,
+                    gramCarbs: _recommendedCarbs,
                   ),
-                  Align(
-                    alignment: Alignment.center,
-                    heightFactor: 1.5,
-                    child: RaisedButton(
-                      child: Text('Calculate'),
-                      onPressed: _calculate,
-                    ),
-                  ),
-                  Visibility(
-                    visible: _hasCalculated,
-                    child: AdjustmentRecommendation(
-                      dose: _recommendedDose,
-                      gramCarbs: _recommendedCarbs,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ));
+                ),
+              ],
+            ),
+          ],
+        ),
+      )
+    );
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is removed from the
+    // widget tree.
+    _textFieldController.dispose();
+    super.dispose();
   }
 }
