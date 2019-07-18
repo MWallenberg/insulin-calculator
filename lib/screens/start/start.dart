@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:insulin_calc/screens/meal/meal.dart';
 import 'package:insulin_calc/screens/settings/settings.dart';
 
 class Start extends StatefulWidget {
@@ -11,7 +12,7 @@ class Start extends StatefulWidget {
 class _StartState extends State<Start> {
   int _currentIndex = 0;
   final List<Widget> _children = [
-    Placeholder(color: Colors.white,),
+    MealScreen(),
     Placeholder(color: Colors.red,),
     SettingsScreen(),
   ];
