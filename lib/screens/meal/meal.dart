@@ -13,8 +13,10 @@ class MealScreen extends StatefulWidget {
 
 class _MealScreenState extends State<MealScreen> {
   InsulinCalculator _calculator;
+  int _gramCarbs;
   double _recommendedDose;
   bool _hasCalculated;
+  final _formKey = GlobalKey<FormState>();
 
   _MealScreenState() {
     _hasCalculated = false;
@@ -24,13 +26,13 @@ class _MealScreenState extends State<MealScreen> {
   }
 
   void _calculate() {
-    // TODO: Get the carbs from the form
-    int gramCarbs = 45;
-
-    setState(() {
-      _recommendedDose = _calculator.doseForCarbs(gramCarbs);
-      _hasCalculated = true;
-    });
+    if (_formKey.currentState.validate()) {
+      _formKey.currentState.save();
+      setState(() {
+        _recommendedDose = _calculator.doseForCarbs(_gramCarbs);
+        _hasCalculated = true;
+      });
+    }
   }
   
   @override
@@ -40,6 +42,7 @@ class _MealScreenState extends State<MealScreen> {
       child: Column(
         children: <Widget>[
           Form(
+            key: _formKey,
             child: Column(
               children: <Widget>[
                 TextFormField(
@@ -48,6 +51,13 @@ class _MealScreenState extends State<MealScreen> {
                     labelText: 'Carbohydrates in meal' 
                   ),
                   keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return "Enter the amount of carbohydrates";
+                    }
+                    return null;
+                  },
+                  onSaved: (val) => _gramCarbs = int.parse(val),
                 ),
                 Align(
                   alignment: Alignment.bottomRight,
