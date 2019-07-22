@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:insulin_calc/screens/adjust/components/adjustmentrecommendation.dart';
 import 'package:insulin_calc/services/insulincalulator.dart';
-import 'package:insulin_calc/services/settingsService.dart';
+import 'package:insulin_calc/models/preferences.dart';
+import 'package:provider/provider.dart';
 
 class AdjustScreen extends StatefulWidget {
   @override
@@ -23,14 +24,6 @@ class _AdjustScreenState extends State<AdjustScreen> {
 
   _AdjustScreenState() {
     _hasCalculated = false;
-    SettingsService.getDailyDose().then((val) => setState(() {
-          _calculator = InsulinCalculator(val);
-        }));
-
-    SettingsService.getTargetBloodSugar().then((val) => setState(() {
-          _desiredMmol = val;
-          _textFieldController.text = _desiredMmol.toString();
-        }));
   }
 
   _resetState() {
@@ -74,6 +67,12 @@ class _AdjustScreenState extends State<AdjustScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Preferences preferences = Provider.of<Preferences>(context);
+    _calculator = InsulinCalculator(preferences.getDailyDose());
+    
+    _desiredMmol = _desiredMmol ?? preferences.getTargetMmol();
+    _textFieldController.text = _desiredMmol.toString();
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
       child: Form(

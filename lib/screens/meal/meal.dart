@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:insulin_calc/screens/meal/components/recommendation.dart';
 import 'package:insulin_calc/services/insulincalulator.dart';
-import 'package:insulin_calc/services/settingsService.dart';
+import 'package:insulin_calc/models/preferences.dart';
+import 'package:provider/provider.dart';
 
 class MealScreen extends StatefulWidget {
   @override
@@ -11,7 +12,6 @@ class MealScreen extends StatefulWidget {
 }
 
 class _MealScreenState extends State<MealScreen> {
-  InsulinCalculator _calculator;
   int _gramCarbs;
   double _recommendedDose;
   bool _hasCalculated;
@@ -19,12 +19,13 @@ class _MealScreenState extends State<MealScreen> {
 
   _MealScreenState() {
     _hasCalculated = false;
-    SettingsService.getDailyDose().then((val) => setState(() {
-          _calculator = InsulinCalculator(val);
-        }));
+    
   }
 
   void _calculate() {
+    final Preferences preferences = Provider.of<Preferences>(context);
+    final InsulinCalculator _calculator = InsulinCalculator(preferences.getDailyDose());
+
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
 
